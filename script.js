@@ -1,332 +1,222 @@
-// Seleção de elementos
-const platformLinks = document.querySelectorAll('.platform-link');
-const conversationGroups = document.querySelectorAll('.conversation-group');
-const conversationItems = document.querySelectorAll('.conversation-item');
-const messageInput = document.getElementById('messageInput');
-const sendButton = document.getElementById('sendButton');
-const chatMessages = document.querySelector('.chat-messages');
-const chatHeader = document.querySelector('.chat-header');
-const searchInput = document.querySelector('input[type="search"]');
+// pegar elementos
+var btnEnviar = document.getElementById('sendButton');
+var inputMsg = document.getElementById('messageInput');
+var areaMsg = document.querySelector('.chat-messages');
+var plataformas = document.querySelectorAll('.platform-link');
+var gruposConversa = document.querySelectorAll('.conversation-group');
+var itensConversa = document.querySelectorAll('.conversation-item');
+var cabecalhoChat = document.querySelector('.chat-header');
+var campoBusca = document.querySelector('input[type="search"]');
 
-// Dados das conversas (simulação)
-const chatData = {
+// verificar se esta logado
+var usuarioLogado = sessionStorage.getItem('usuario');
+if (!usuarioLogado) {
+  window.location.href = 'login.html';
+}
+
+// trocar de plataforma
+for (var i = 0; i < plataformas.length; i++) {
+  plataformas[i].onclick = function(e) {
+    e.preventDefault();
+    var plat = this.getAttribute('data-platform');
+    
+    // remove active de todos
+    for (var j = 0; j < plataformas.length; j++) {
+      plataformas[j].classList.remove('active');
+    }
+    this.classList.add('active');
+    
+    // esconde todos os grupos
+    for (var j = 0; j < gruposConversa.length; j++) {
+      gruposConversa[j].classList.add('d-none');
+    }
+    
+    // mostra o grupo selecionado
+    var grupoSelecionado = document.querySelector('.conversation-group[data-platform="' + plat + '"]');
+    if (grupoSelecionado) {
+      grupoSelecionado.classList.remove('d-none');
+      var primeiraConversa = grupoSelecionado.querySelector('.conversation-item');
+      if (primeiraConversa) {
+        primeiraConversa.click();
+      }
+    }
+  };
+}
+
+// clicar numa conversa
+for (var i = 0; i < itensConversa.length; i++) {
+  itensConversa[i].onclick = function() {
+    // remove active de todos
+    for (var j = 0; j < itensConversa.length; j++) {
+      itensConversa[j].classList.remove('active');
+    }
+    this.classList.add('active');
+    
+    // remove badge
+    var badge = this.querySelector('.badge');
+    if (badge) badge.remove();
+    
+    // carrega o chat
+    var id = this.getAttribute('data-chat-id');
+    mostrarChat(id);
+  };
+}
+
+// dados dos chats
+var chats = {
   1: {
-    name: 'João Silva',
-    phone: '5549999999999',
-    platform: 'WhatsApp',
+    nome: 'João Silva',
+    plataforma: 'WhatsApp',
     status: 'Online',
-    avatar: 'https://ui-avatars.com/api/?name=João+Silva&background=25D366&color=fff',
-    messages: [
-      { type: 'received', text: 'Olá! Boa tarde!', time: '10:25' },
-      { type: 'received', text: 'Gostaria de saber mais sobre os produtos disponíveis.', time: '10:26' },
-      { type: 'received', text: 'Vocês fazem entrega?', time: '10:26' },
-      { type: 'sent', text: 'Olá João! Claro, temos vários produtos disponíveis.', time: '10:28' },
-      { type: 'sent', text: 'Sim, fazemos entrega em toda a cidade! 🚚', time: '10:28' },
-      { type: 'received', text: 'Perfeito! Qual o prazo de entrega?', time: '10:30' },
-      { type: 'sent', text: 'O prazo é de 2 a 3 dias úteis para a sua região 📦', time: '10:31' },
-      { type: 'received', text: 'Ótimo! Vou fazer o pedido então 😊', time: '10:32' }
-    ]
-  },
-  2: {
-    name: 'Maria Santos',
-    phone: '5549988888888',
-    platform: 'WhatsApp',
-    status: 'Online',
-    avatar: 'https://ui-avatars.com/api/?name=Maria+Santos&background=25D366&color=fff',
-    messages: [
-      { type: 'received', text: 'Boa tarde!', time: '09:10' },
-      { type: 'sent', text: 'Boa tarde Maria! Como posso ajudar?', time: '09:12' },
-      { type: 'received', text: 'Queria saber se tem o produto X em estoque', time: '09:13' },
-      { type: 'sent', text: 'Sim, temos disponível! Gostaria de realizar o pedido?', time: '09:14' },
-      { type: 'received', text: 'Obrigada pelo atendimento', time: '09:15' }
-    ]
-  },
-  3: {
-    name: 'Pedro Costa',
-    phone: '5549977777777',
-    platform: 'WhatsApp',
-    status: 'Visto por último hoje às 08:30',
-    avatar: 'https://ui-avatars.com/api/?name=Pedro+Costa&background=25D366&color=fff',
-    messages: [
-      { type: 'received', text: 'Qual o prazo de entrega?', time: 'Ontem 15:30' },
-      { type: 'sent', text: 'Olá Pedro! O prazo é de 2 a 3 dias úteis', time: 'Ontem 15:35' }
-    ]
-  },
-  4: {
-    name: 'Ana Lima',
-    phone: '5549966666666',
-    platform: 'WhatsApp',
-    status: 'Online',
-    avatar: 'https://ui-avatars.com/api/?name=Ana+Lima&background=25D366&color=fff',
-    messages: [
-      { type: 'received', text: 'Bom dia! Gostaria de um orçamento', time: '07:45' },
-      { type: 'sent', text: 'Bom dia Ana! Claro, vou preparar um orçamento para você', time: '07:50' }
+    foto: 'https://ui-avatars.com/api/?name=João+Silva&background=25D366&color=fff',
+    msgs: [
+      { tipo: 'received', txt: 'Olá! Boa tarde!', hora: '10:25' },
+      { tipo: 'received', txt: 'Gostaria de saber mais sobre os produtos disponíveis.', hora: '10:26' },
+      { tipo: 'received', txt: 'Vocês fazem entrega?', hora: '10:26' },
+      { tipo: 'sent', txt: 'Olá João! Claro, temos vários produtos disponíveis.', hora: '10:28' },
+      { tipo: 'sent', txt: 'Sim, fazemos entrega em toda a cidade! 🚚', hora: '10:28' },
+      { tipo: 'received', txt: 'Perfeito! Qual o prazo de entrega?', hora: '10:30' },
+      { tipo: 'sent', txt: 'O prazo é de 2 a 3 dias úteis para a sua região 📦', hora: '10:31' },
+      { tipo: 'received', txt: 'Ótimo! Vou fazer o pedido então 😊', hora: '10:32' }
     ]
   },
   5: {
-    name: 'Carlos Mendes',
-    phone: '5549955555555',
-    platform: 'WhatsApp',
+    nome: 'Carlos Mendes',
+    plataforma: 'WhatsApp',
     status: 'Digitando...',
-    avatar: 'https://ui-avatars.com/api/?name=Carlos+Mendes&background=25D366&color=fff',
-    messages: [
-      { type: 'received', text: 'Tem disponível em outras cores?', time: 'Seg 14:20' },
-      { type: 'sent', text: 'Sim! Temos nas cores azul, vermelho e preto', time: 'Seg 14:25' }
+    foto: 'https://ui-avatars.com/api/?name=Carlos+Mendes&background=25D366&color=fff',
+    msgs: [
+      { tipo: 'received', txt: 'Tem disponível em outras cores?', hora: 'Seg 14:20' },
+      { tipo: 'sent', txt: 'Sim! Temos nas cores azul, vermelho e preto', hora: 'Seg 14:25' }
     ]
   },
   6: {
-    name: 'Julia Costa',
-    platform: 'Instagram',
+    nome: 'Julia Costa',
+    plataforma: 'Instagram',
     status: 'Online',
-    avatar: 'https://ui-avatars.com/api/?name=Julia+Costa&background=E4405F&color=fff',
-    messages: [
-      { type: 'received', text: 'Adorei o produto! 😍', time: '11:20' },
-      { type: 'sent', text: 'Que bom que gostou! Quer fazer o pedido?', time: '11:25' }
+    foto: 'https://ui-avatars.com/api/?name=Julia+Costa&background=E4405F&color=fff',
+    msgs: [
+      { tipo: 'received', txt: 'Adorei o produto! 😍', hora: '11:20' },
+      { tipo: 'sent', txt: 'Que bom que gostou! Quer fazer o pedido?', hora: '11:25' }
     ]
   },
   7: {
-    name: 'Rafael Alves',
-    platform: 'Instagram',
+    nome: 'Rafael Alves',
+    plataforma: 'Instagram',
     status: 'Ativo há 5min',
-    avatar: 'https://ui-avatars.com/api/?name=Rafael+Alves&background=E4405F&color=fff',
-    messages: [
-      { type: 'received', text: 'Vi seu post, como faço pedido?', time: '10:45' },
-      { type: 'sent', text: 'Olá! Você pode fazer pelo direct ou WhatsApp', time: '10:50' }
+    foto: 'https://ui-avatars.com/api/?name=Rafael+Alves&background=E4405F&color=fff',
+    msgs: [
+      { tipo: 'received', txt: 'Vi seu post, como faço pedido?', hora: '10:45' },
+      { tipo: 'sent', txt: 'Olá! Você pode fazer pelo direct ou WhatsApp', hora: '10:50' }
     ]
   },
   8: {
-    name: 'Lucia Ferreira',
-    platform: 'Facebook',
+    nome: 'Lucia Ferreira',
+    plataforma: 'Facebook',
     status: 'Online',
-    avatar: 'https://ui-avatars.com/api/?name=Lucia+Ferreira&background=1877F2&color=fff',
-    messages: [
-      { type: 'received', text: 'Preciso de mais informações', time: '12:00' },
-      { type: 'sent', text: 'Claro! O que gostaria de saber?', time: '12:05' }
+    foto: 'https://ui-avatars.com/api/?name=Lucia+Ferreira&background=1877F2&color=fff',
+    msgs: [
+      { tipo: 'received', txt: 'Preciso de mais informações', hora: '12:00' },
+      { tipo: 'sent', txt: 'Claro! O que gostaria de saber?', hora: '12:05' }
     ]
   },
   9: {
-    name: 'Bruno Souza',
-    platform: 'Telegram',
+    nome: 'Bruno Souza',
+    plataforma: 'Telegram',
     status: 'Online',
-    avatar: 'https://ui-avatars.com/api/?name=Bruno+Souza&background=0088cc&color=fff',
-    messages: [
-      { type: 'received', text: 'Olá, tudo bem?', time: '13:15' },
-      { type: 'sent', text: 'Tudo ótimo! E você?', time: '13:20' }
+    foto: 'https://ui-avatars.com/api/?name=Bruno+Souza&background=0088cc&color=fff',
+    msgs: [
+      { tipo: 'received', txt: 'Olá, tudo bem?', hora: '13:15' },
+      { tipo: 'sent', txt: 'Tudo ótimo! E você?', hora: '13:20' }
     ]
   }
 };
 
-// Trocar plataforma
-platformLinks.forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const platform = link.getAttribute('data-platform');
-    
-    // Remove active de todos os links
-    platformLinks.forEach(l => l.classList.remove('active'));
-    link.classList.add('active');
-    
-    // Esconde todos os grupos
-    conversationGroups.forEach(group => {
-      group.classList.add('d-none');
-    });
-    
-    // Mostra o grupo selecionado
-    const selectedGroup = document.querySelector(`.conversation-group[data-platform="${platform}"]`);
-    if (selectedGroup) {
-      selectedGroup.classList.remove('d-none');
-      
-      // Clica na primeira conversa
-      const firstConversation = selectedGroup.querySelector('.conversation-item');
-      if (firstConversation) {
-        firstConversation.click();
-      }
-    }
-  });
-});
-
-// Selecionar conversa
-conversationItems.forEach(item => {
-  item.addEventListener('click', () => {
-    // Remove active de todos
-    conversationItems.forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-    
-    // Remove badge de não lidas
-    const badge = item.querySelector('.badge');
-    if (badge) {
-      badge.remove();
-    }
-    
-    // Carrega o chat
-    const chatId = item.getAttribute('data-chat-id');
-    loadChat(chatId);
-  });
-});
-
-// Carregar chat
-function loadChat(chatId) {
-  const chat = chatData[chatId];
+// mostrar chat
+function mostrarChat(id) {
+  var chat = chats[id];
   if (!chat) return;
   
-  // Atualizar header
-  const headerHtml = `
-    <div class="d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center">
-        <img src="${chat.avatar}" class="rounded-circle me-3" width="50" height="50">
-        <div>
-          <h5 class="mb-0">${chat.name}</h5>
-          <small class="text-muted">
-            <i class="bi bi-${getPlatformIcon(chat.platform)} text-${getPlatformColor(chat.platform)}"></i> 
-            ${chat.platform} • <span class="text-${getStatusColor(chat.status)}">${chat.status}</span>
-          </small>
-        </div>
-      </div>
-      <div>
-        <button class="btn btn-sm btn-outline-secondary me-2" title="Chamada de voz">
-          <i class="bi bi-telephone"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-secondary me-2" title="Chamada de vídeo">
-          <i class="bi bi-camera-video"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-secondary" title="Mais opções">
-          <i class="bi bi-three-dots-vertical"></i>
-        </button>
-      </div>
-    </div>
-  `;
+  var icone = 'whatsapp';
+  var cor = 'success';
   
-  chatHeader.innerHTML = headerHtml;
+  if (chat.plataforma === 'Instagram') {
+    icone = 'instagram';
+    cor = 'danger';
+  } else if (chat.plataforma === 'Facebook') {
+    icone = 'facebook';
+    cor = 'primary';
+  } else if (chat.plataforma === 'Telegram') {
+    icone = 'telegram';
+    cor = 'info';
+  }
   
-  // Atualizar mensagens
-  chatMessages.innerHTML = '<div class="message-date text-center mb-3"><span class="badge bg-light text-dark">Hoje</span></div>';
+  var corStatus = chat.status.includes('Online') || chat.status.includes('Digitando') ? 'success' : 'secondary';
   
-  chat.messages.forEach(msg => {
-    addMessageToChat(msg.text, msg.type, msg.time, chat.avatar);
-  });
+  cabecalhoChat.innerHTML = '<div class="d-flex align-items-center justify-content-between"><div class="d-flex align-items-center"><img src="' + chat.foto + '" class="rounded-circle me-3" width="50" height="50"><div><h5 class="mb-0">' + chat.nome + '</h5><small class="text-muted"><i class="bi bi-' + icone + ' text-' + cor + '"></i> ' + chat.plataforma + ' • <span class="text-' + corStatus + '">' + chat.status + '</span></small></div></div><div><button class="btn btn-sm btn-outline-secondary me-2" title="Chamada de voz"><i class="bi bi-telephone"></i></button><button class="btn btn-sm btn-outline-secondary me-2" title="Chamada de vídeo"><i class="bi bi-camera-video"></i></button><button class="btn btn-sm btn-outline-secondary" title="Mais opções"><i class="bi bi-three-dots-vertical"></i></button></div></div>';
   
-  // Scroll para o final
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  areaMsg.innerHTML = '<div class="message-date text-center mb-3"><span class="badge bg-light text-dark">Hoje</span></div>';
+  
+  for (var i = 0; i < chat.msgs.length; i++) {
+    adicionarMsg(chat.msgs[i].txt, chat.msgs[i].tipo, chat.msgs[i].hora, chat.foto);
+  }
+  
+  areaMsg.scrollTop = areaMsg.scrollHeight;
 }
 
-// Adicionar mensagem ao chat
-function addMessageToChat(text, type, time, avatar = null) {
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${type}`;
+// adicionar mensagem
+function adicionarMsg(texto, tipo, hora, foto) {
+  var div = document.createElement('div');
+  div.className = 'message ' + tipo;
   
-  if (type === 'received') {
-    messageDiv.innerHTML = `
-      <img src="${avatar}" class="rounded-circle me-2" width="35" height="35">
-      <div class="message-bubble">
-        <p class="mb-1">${escapeHtml(text)}</p>
-        <small class="text-muted">${time}</small>
-      </div>
-    `;
+  if (tipo === 'received') {
+    div.innerHTML = '<img src="' + foto + '" class="rounded-circle me-2" width="35" height="35"><div class="message-bubble"><p class="mb-1">' + texto + '</p><small class="text-muted">' + hora + '</small></div>';
   } else {
-    messageDiv.innerHTML = `
-      <div class="message-bubble">
-        <p class="mb-1">${escapeHtml(text)}</p>
-        <small class="text-muted">${time} <i class="bi bi-check-all text-primary"></i></small>
-      </div>
-    `;
+    div.innerHTML = '<div class="message-bubble"><p class="mb-1">' + texto + '</p><small class="text-muted">' + hora + ' <i class="bi bi-check-all text-primary"></i></small></div>';
   }
   
-  chatMessages.appendChild(messageDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  areaMsg.appendChild(div);
+  areaMsg.scrollTop = areaMsg.scrollHeight;
 }
 
-// Enviar mensagem
-function sendMessage() {
-  const text = messageInput.value.trim();
-  if (!text) return;
-  
-  const now = new Date();
-  const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  
-  addMessageToChat(text, 'sent', time);
-  messageInput.value = '';
-  messageInput.focus();
-  
-  // Simular resposta automática (opcional)
-  setTimeout(() => {
-    const responses = [
-      'Entendi! Vou verificar isso para você.',
-      'Obrigado pela mensagem!',
-      'Deixe-me consultar essas informações.',
-      'Perfeito! Já estou providenciando.',
-      'Tudo certo! Pode deixar comigo.'
-    ];
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+// enviar mensagem
+btnEnviar.onclick = function() {
+  var texto = inputMsg.value.trim();
+  if (texto) {
+    var agora = new Date();
+    var h = agora.getHours();
+    var m = agora.getMinutes();
+    if (h < 10) h = '0' + h;
+    if (m < 10) m = '0' + m;
+    var hora = h + ':' + m;
     
-    // Descomente a linha abaixo para ativar resposta automática
-    // addMessageToChat(randomResponse, 'received', time, chatHeader.querySelector('img').src);
-  }, 2000);
-}
-
-// Event listeners para enviar mensagem
-sendButton.addEventListener('click', sendMessage);
-messageInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
+    adicionarMsg(texto, 'sent', hora);
+    inputMsg.value = '';
   }
-});
+};
 
-// Buscar conversas
-searchInput.addEventListener('input', (e) => {
-  const searchTerm = e.target.value.toLowerCase();
+// enviar com enter
+inputMsg.onkeypress = function(e) {
+  if (e.key === 'Enter') {
+    btnEnviar.click();
+  }
+};
+
+// buscar conversa
+campoBusca.oninput = function() {
+  var termo = this.value.toLowerCase();
   
-  conversationItems.forEach(item => {
-    const name = item.querySelector('h6').textContent.toLowerCase();
-    const message = item.querySelector('p').textContent.toLowerCase();
+  for (var i = 0; i < itensConversa.length; i++) {
+    var nome = itensConversa[i].querySelector('h6').textContent.toLowerCase();
+    var msg = itensConversa[i].querySelector('p').textContent.toLowerCase();
     
-    if (name.includes(searchTerm) || message.includes(searchTerm)) {
-      item.style.display = 'flex';
+    if (nome.includes(termo) || msg.includes(termo)) {
+      itensConversa[i].style.display = 'flex';
     } else {
-      item.style.display = 'none';
+      itensConversa[i].style.display = 'none';
     }
-  });
-});
-
-// Funções auxiliares
-function getPlatformIcon(platform) {
-  const icons = {
-    'WhatsApp': 'whatsapp',
-    'Instagram': 'instagram',
-    'Facebook': 'facebook',
-    'Telegram': 'telegram'
-  };
-  return icons[platform] || 'chat';
-}
-
-function getPlatformColor(platform) {
-  const colors = {
-    'WhatsApp': 'success',
-    'Instagram': 'danger',
-    'Facebook': 'primary',
-    'Telegram': 'info'
-  };
-  return colors[platform] || 'secondary';
-}
-
-function getStatusColor(status) {
-  if (status.includes('Online') || status.includes('Digitando')) {
-    return 'success';
   }
-  return 'secondary';
-}
+};
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', () => {
-  // Carregar primeiro chat
-  loadChat('1');
-  
-  // Focar no input
-  messageInput.focus();
-});
+// iniciar
+mostrarChat('1');
