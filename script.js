@@ -71,13 +71,7 @@ var chats = {
     foto: 'https://ui-avatars.com/api/?name=João+Silva&background=25D366&color=fff',
     msgs: [
       { tipo: 'received', txt: 'Olá! Boa tarde!', hora: '10:25' },
-      { tipo: 'received', txt: 'Gostaria de saber mais sobre os produtos disponíveis.', hora: '10:26' },
-      { tipo: 'received', txt: 'Vocês fazem entrega?', hora: '10:26' },
-      { tipo: 'sent', txt: 'Olá João! Claro, temos vários produtos disponíveis.', hora: '10:28' },
-      { tipo: 'sent', txt: 'Sim, fazemos entrega em toda a cidade! 🚚', hora: '10:28' },
-      { tipo: 'received', txt: 'Perfeito! Qual o prazo de entrega?', hora: '10:30' },
-      { tipo: 'sent', txt: 'O prazo é de 2 a 3 dias úteis para a sua região 📦', hora: '10:31' },
-      { tipo: 'received', txt: 'Ótimo! Vou fazer o pedido então 😊', hora: '10:32' }
+     
     ]
   },
   5: {
@@ -87,7 +81,7 @@ var chats = {
     foto: 'https://ui-avatars.com/api/?name=Carlos+Mendes&background=25D366&color=fff',
     msgs: [
       { tipo: 'received', txt: 'Tem disponível em outras cores?', hora: 'Seg 14:20' },
-      { tipo: 'sent', txt: 'Sim! Temos nas cores azul, vermelho e preto', hora: 'Seg 14:25' }
+      
     ]
   },
   6: {
